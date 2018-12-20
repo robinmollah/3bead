@@ -259,3 +259,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/Bead3-pro.apk
+/Bead3.apk
+/Library
+/Temp

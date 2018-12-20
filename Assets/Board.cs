@@ -39,7 +39,7 @@ public class Board : MonoBehaviour {
         {
             GameObject obj = hitInfo.transform.gameObject;
             Room room = obj.GetComponent<Room>();
-            if(takenRoom.member != Room.Bead.EMPTY)
+            if(takenRoom != null && takenRoom.member != Room.Bead.EMPTY)
             {
                 room.setMove(takenRoom.getMember());
                 // remove from previous room

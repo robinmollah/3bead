@@ -46,6 +46,9 @@ public class Room : MonoBehaviour
         
     }
 
+    /*
+     * Makes a move from this to type
+     */ 
     public void setMove(Bead type)
     {
         setMember(type);

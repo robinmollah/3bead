@@ -9,6 +9,8 @@ public class Board : MonoBehaviour {
     private Room takenRoom;
     private Boolean taken;
     private Room.Bead currentTurn = Room.Bead.VEE;
+    private int[] vees = new int[3] { 6, 7, 8 };
+    private int[] roos = new int[3] { 0, 1, 2 };
     
 	void Start () {
         InitiateRooms();
@@ -60,6 +62,7 @@ public class Board : MonoBehaviour {
                 }
                 room.setMove(takenRoom.getMember());
                 takenRoom.removeMove();
+                // isWin(takenRoom.index, room.index);
                 taken = false;
                 currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
                 return;
@@ -69,13 +72,30 @@ public class Board : MonoBehaviour {
                 {
                     Color tmpColor = room.GetComponent<SpriteRenderer>().color;
                     tmpColor.a = 0.5f;
-                    
                     room.GetComponent<SpriteRenderer>().color = tmpColor;
                     takenRoom = room;
                     taken = true;
                 }
             }
         }
+    }
+
+    private void isWin(int prevIndex, int currentIndex)
+    {
+        // Refresh positions
+        Room.Bead bead = rooms[currentIndex].getMember();
+        Boolean isRoo = bead == Room.Bead.ROO;
+        if (isRoo)
+        {
+            roos[Array.IndexOf(roos, prevIndex)] = currentIndex;
+            Debug.Log(roos);
+        }
+        else
+        {
+            vees[Array.IndexOf(vees, prevIndex)] = currentIndex;
+            Debug.Log(vees);
+        }
+        // Check positions
     }
 
     private void InitiateRooms()

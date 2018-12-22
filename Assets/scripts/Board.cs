@@ -33,7 +33,6 @@ public class Board : MonoBehaviour {
 
     private void Raycast(Vector2 screenTouch)
     {
-        // Test line
         RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(screenTouch), Vector2.zero);
         if (hitInfo)
         {

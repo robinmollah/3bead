@@ -7,13 +7,15 @@ public class Board : MonoBehaviour {
     public Room[] rooms = new Room[9];
     public Texture2D rooTex, veeTex;
     private Room takenRoom;
+    private Boolean taken;
+    private Room.Bead currentTurn = Room.Bead.VEE;
     
 	void Start () {
         InitiateRooms();
 	}
 
     void Update () {
-    #if UNITY_ANDROID
+#if UNITY_ANDROID
         for(int i = 0; i < Input.touchCount; i++)
         {
             if(Input.GetTouch(i).phase == TouchPhase.Began)
@@ -21,15 +23,14 @@ public class Board : MonoBehaviour {
                 raycast(Input.GetTouch(i).position);
             }
         }
-#endif
-#if UNITY_EDITOR
+#else
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 v = Input.mousePosition;
             Debug.Log(v);
             raycast(v);
         }
-    #endif
+#endif
     }
 
     private void raycast(Vector2 screenTouch)
@@ -37,21 +38,47 @@ public class Board : MonoBehaviour {
         RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(screenTouch), Vector2.zero);
         if (hitInfo)
         {
+            /*
+             * Bugs:
+             *  1. No overwrite 
+             *  2. Valid Move
+             *  3. Fade in/out problem
+             *  4. Move animation
+             *  5. Turn taking
+             */
             GameObject obj = hitInfo.transform.gameObject;
             Room room = obj.GetComponent<Room>();
-            if(takenRoom != null && takenRoom.member != Room.Bead.EMPTY)
+            if (taken)
             {
+                if(room.index == takenRoom.index)
+                {
+                    Debug.Log("Back this bead.");
+                    Color tmpColor = room.GetComponent<SpriteRenderer>().color;
+                    tmpColor.a = 1f;
+                    obj.GetComponent<SpriteRenderer>().color = tmpColor;
+                    taken = false;
+                    takenRoom = null;
+                    return;
+                }
+                if(!takenRoom.ValidMove(room))
+                {
+                    return;
+                }
                 room.setMove(takenRoom.getMember());
-                // remove from previous room
-
-                takenRoom = null;
-            }
-            if (!room.isEmpty())
+                takenRoom.removeMove();
+                taken = false;
+                currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
+                return;
+            } else
             {
-                Color tmpColor = obj.GetComponent<SpriteRenderer>().color;
-                tmpColor.a = 0.5f;
-                obj.GetComponent<SpriteRenderer>().color = tmpColor;
-                takenRoom = room;
+                if (!room.isEmpty() && room.getMember() == currentTurn)
+                {
+                    Color tmpColor = obj.GetComponent<SpriteRenderer>().color;
+                    tmpColor.a = 0.5f;
+                    obj.GetComponent<SpriteRenderer>().color = tmpColor;
+                    takenRoom = room;
+                    taken = true;
+                }
             }
         }
     }
@@ -66,6 +93,7 @@ public class Board : MonoBehaviour {
                 Debug.Log("Initiating room: " + rIndex);
                 GameObject obj = new GameObject("RoomIndex : " + rIndex);
                 rooms[rIndex] = obj.AddComponent<Room>();
+                rooms[rIndex].setIndex(rIndex);
                 obj.transform.SetParent(transform);
                 rooms[rIndex].position = new Vector2(j, i * -1);
                 obj.transform.localPosition = rooms[rIndex].getPosition();

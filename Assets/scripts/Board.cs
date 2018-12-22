@@ -15,39 +15,32 @@ public class Board : MonoBehaviour {
 	}
 
     void Update () {
-#if UNITY_ANDROID
+    #if UNITY_ANDROID
         for(int i = 0; i < Input.touchCount; i++)
         {
             if(Input.GetTouch(i).phase == TouchPhase.Began)
             {
-                raycast(Input.GetTouch(i).position);
+                Raycast(Input.GetTouch(i).position);
             }
         }
-#else
+    #else
         if (Input.GetMouseButtonDown(0))
         {
-            Vector2 v = Input.mousePosition;
-            Debug.Log(v);
-            raycast(v);
+            Raycast(Input.mousePosition);
         }
-#endif
+    #endif
     }
 
-    private void raycast(Vector2 screenTouch)
+    private void Raycast(Vector2 screenTouch)
     {
         RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(screenTouch), Vector2.zero);
         if (hitInfo)
         {
             /*
              * Bugs:
-             *  1. No overwrite 
-             *  2. Valid Move
-             *  3. Fade in/out problem
              *  4. Move animation
-             *  5. Turn taking
              */
-            GameObject obj = hitInfo.transform.gameObject;
-            Room room = obj.GetComponent<Room>();
+            Room room = hitInfo.transform.gameObject.GetComponent<Room>();
             if (taken)
             {
                 if(room.index == takenRoom.index)
@@ -55,7 +48,7 @@ public class Board : MonoBehaviour {
                     Debug.Log("Back this bead.");
                     Color tmpColor = room.GetComponent<SpriteRenderer>().color;
                     tmpColor.a = 1f;
-                    obj.GetComponent<SpriteRenderer>().color = tmpColor;
+                    room.GetComponent<SpriteRenderer>().color = tmpColor;
                     taken = false;
                     takenRoom = null;
                     return;
@@ -73,9 +66,10 @@ public class Board : MonoBehaviour {
             {
                 if (!room.isEmpty() && room.getMember() == currentTurn)
                 {
-                    Color tmpColor = obj.GetComponent<SpriteRenderer>().color;
+                    Color tmpColor = room.GetComponent<SpriteRenderer>().color;
                     tmpColor.a = 0.5f;
-                    obj.GetComponent<SpriteRenderer>().color = tmpColor;
+                    
+                    room.GetComponent<SpriteRenderer>().color = tmpColor;
                     takenRoom = room;
                     taken = true;
                 }

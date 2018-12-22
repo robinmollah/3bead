@@ -25,7 +25,8 @@ public class Board : MonoBehaviour {
                 Raycast(Input.GetTouch(i).position);
             }
         }
-    #else
+#endif
+#if UNITY_EDITOR || UNITY_FACEBOOK
         if (Input.GetMouseButtonDown(0))
         {
             Raycast(Input.mousePosition);
@@ -35,7 +36,6 @@ public class Board : MonoBehaviour {
 
     private void Raycast(Vector2 screenTouch)
     {
-        // Test om master
         RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(screenTouch), Vector2.zero);
         if (hitInfo)
         {
@@ -62,7 +62,7 @@ public class Board : MonoBehaviour {
                 }
                 room.setMove(takenRoom.getMember());
                 takenRoom.removeMove();
-                // isWin(takenRoom.index, room.index);
+                isWin(takenRoom.index, room.index);
                 taken = false;
                 currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
                 return;

@@ -53,17 +53,8 @@
     <Reference Include="UnityEngine">
       <HintPath>R:/Program Files/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="Facebook.Unity">
-      <HintPath>Library/FacebookSDK/Facebook.Unity.dll</HintPath>
-    </Reference>
-    <Reference Include="Facebook.Unity.Arcade">
-      <HintPath>Library/FacebookSDK/Facebook.Unity.Arcade.dll</HintPath>
-    </Reference>
     <Reference Include="Facebook.Unity.Settings">
       <HintPath>Library/FacebookSDK/Facebook.Unity.Settings.dll</HintPath>
-    </Reference>
-    <Reference Include="FacebookNamedPipeClient">
-      <HintPath>Library/FacebookSDK/FacebookNamedPipeClient.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>R:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>

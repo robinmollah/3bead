@@ -8,11 +8,12 @@ public class Board : MonoBehaviour {
     public Texture2D rooTex, veeTex;
     private Room takenRoom;
     private Boolean taken;
-    private Room.Bead currentTurn = Room.Bead.VEE;
-    private int[] vees = new int[3] { 6, 7, 8 };
-    private int[] roos = new int[3] { 0, 1, 2 };
+    private Room.Bead currentTurn;
+    private readonly int[] vees = new int[3] { 6, 7, 8 };
+    private readonly int[] roos = new int[3] { 0, 1, 2 };
     
 	void Start () {
+        currentTurn = UnityEngine.Random.value > 0.5f ? Room.Bead.VEE : Room.Bead.ROO;
         InitiateRooms();
 	}
 
@@ -62,7 +63,10 @@ public class Board : MonoBehaviour {
                 }
                 room.setMove(takenRoom.getMember());
                 takenRoom.removeMove();
-                isWin(takenRoom.index, room.index);
+                if(isWin(takenRoom.index, room.index))
+                {
+                    Debug.Log(room.getMember() + " won!");
+                }
                 taken = false;
                 currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
                 return;
@@ -80,22 +84,26 @@ public class Board : MonoBehaviour {
         }
     }
 
-    private void isWin(int prevIndex, int currentIndex)
+    private Boolean isWin(int prevIndex, int currentIndex)
     {
         // Refresh positions
-        Room.Bead bead = rooms[currentIndex].getMember();
-        Boolean isRoo = bead == Room.Bead.ROO;
-        if (isRoo)
-        {
-            roos[Array.IndexOf(roos, prevIndex)] = currentIndex;
-            Debug.Log(roos);
-        }
-        else
-        {
-            vees[Array.IndexOf(vees, prevIndex)] = currentIndex;
-            Debug.Log(vees);
-        }
+        int[] arr = rooms[currentIndex].getMember() == Room.Bead.ROO ? roos : vees;
+        arr[Array.IndexOf(arr, prevIndex)] = currentIndex;
         // Check positions
+        // TODO deduct initial position
+        Array.Sort(arr);
+        if (arr[1] - arr[0] == 2) return false; // Cases increments by 2, like 024, 135 are not valid win position
+
+        if(rooms[currentIndex].getMember() == Room.Bead.ROO)
+        {
+            if(arr[0] == 0 && arr[1] == 1 && arr[2] == 2)
+                return false; // Initial Position of Roo
+        } else
+        {
+            if (arr[0] == 6 && arr[1] == 7 && arr[2] == 8)
+                return false; // Initial Position of Vee
+        }
+        return arr[1] - arr[0] == arr[2] - arr[1];
     }
 
     private void InitiateRooms()

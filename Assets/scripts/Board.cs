@@ -40,35 +40,11 @@ public class Board : MonoBehaviour {
         RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(screenTouch), Vector2.zero);
         if (hitInfo)
         {
-            /*
-             * Bugs:
-             *  4. Move animation
-             */
+           
             Room room = hitInfo.transform.gameObject.GetComponent<Room>();
             if (taken)
             {
-                if(room.index == takenRoom.index)
-                {
-                    Debug.Log("Back this bead.");
-                    Color tmpColor = room.GetComponent<SpriteRenderer>().color;
-                    tmpColor.a = 1f;
-                    room.GetComponent<SpriteRenderer>().color = tmpColor;
-                    taken = false;
-                    takenRoom = null;
-                    return;
-                }
-                if(!takenRoom.ValidMove(room))
-                {
-                    return;
-                }
-                room.setMove(takenRoom.getMember());
-                takenRoom.removeMove();
-                if(isWin(takenRoom.index, room.index))
-                {
-                    Debug.Log(room.getMember() + " won!");
-                }
-                taken = false;
-                currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
+                MakeAMove(takenRoom, room);
                 return;
             } else
             {
@@ -84,13 +60,42 @@ public class Board : MonoBehaviour {
         }
     }
 
+    private void MakeAMove(Room takenRoom, Room destRoom)
+    {
+        /*
+        * TODO:
+        *  4. Move animation
+        */
+        if (destRoom.index == takenRoom.index)
+        {
+            Debug.Log("Back this bead.");
+            Color tmpColor = destRoom.GetComponent<SpriteRenderer>().color;
+            tmpColor.a = 1f;
+            destRoom.GetComponent<SpriteRenderer>().color = tmpColor;
+            taken = false;
+            takenRoom = null;
+            return;
+        }
+        if (!takenRoom.ValidMove(destRoom))
+        {
+            return;
+        }
+        destRoom.SetMove(takenRoom.getMember());
+        takenRoom.RemoveMove();
+        if (isWin(takenRoom.index, destRoom.index))
+        {
+            Debug.Log(destRoom.getMember() + " won!");
+        }
+        taken = false;
+        currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
+    }
+
     private Boolean isWin(int prevIndex, int currentIndex)
     {
         // Refresh positions
         int[] arr = rooms[currentIndex].getMember() == Room.Bead.ROO ? roos : vees;
         arr[Array.IndexOf(arr, prevIndex)] = currentIndex;
         // Check positions
-        // TODO deduct initial position
         Array.Sort(arr);
         if (arr[1] - arr[0] == 2) return false; // Cases increments by 2, like 024, 135 are not valid win position
 
@@ -113,15 +118,13 @@ public class Board : MonoBehaviour {
             for (int j = -1; j < 2; j++)
             {
                 int rIndex = 3 * (i + 1) + j + 1;
-                Debug.Log("Initiating room: " + rIndex);
                 GameObject obj = new GameObject("RoomIndex : " + rIndex);
                 rooms[rIndex] = obj.AddComponent<Room>();
                 rooms[rIndex].setIndex(rIndex);
                 obj.transform.SetParent(transform);
-                rooms[rIndex].position = new Vector2(j, i * -1);
-                obj.transform.localPosition = rooms[rIndex].getPosition();
+                rooms[rIndex].Position = new Vector2(j, i * -1);
+                obj.transform.localPosition = rooms[rIndex].GetPosition();
                 // Create SpriteRenderer
-
                 if (i == -1 || i == 1)
                 {
                     Texture2D tex = rooTex;
@@ -142,12 +145,5 @@ public class Board : MonoBehaviour {
                 obj.transform.localScale = Vector3.one;
             }
         }
-    }
-
-    public Texture2D getConjugateTexture(Room.Bead beadType)
-    {
-        if (beadType == Room.Bead.ROO) return rooTex;
-        else if (beadType == Room.Bead.VEE) return veeTex;
-        else return null;
     }
 }

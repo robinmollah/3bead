@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Room : MonoBehaviour
 {
-    private static int[,] graph = new int[9, 9]{
+    private static readonly int[,] graph = new int[9, 9]{
         {0, 1, 0, 1, 1, 0, 0, 0, 0 },
         {1, 0, 1, 0, 1, 0, 0, 0, 0 },
         {0, 1, 0, 0, 1, 1, 0, 0, 0 },
@@ -16,7 +16,7 @@ public class Room : MonoBehaviour
         {0, 0, 0, 0, 1, 1, 0, 1, 0 }
     };
     public Bead member = Bead.EMPTY;
-    public Vector2 position { private get; set; }
+    public Vector2 Position { private get; set; }
     [NonSerialized]
     public int index;
 
@@ -30,14 +30,14 @@ public class Room : MonoBehaviour
         this.index = index;
     }
 
-    public int getIndex()
+    public int GetIndex()
     {
         return index;
     }
 
-    public Vector3 getPosition()
+    public Vector3 GetPosition()
     {
-        return new Vector3(this.position.x, this.position.y, -0.1f);
+        return new Vector3(this.Position.x, this.Position.y, -0.1f);
     }
 
     public void setMember(Bead type)
@@ -49,12 +49,12 @@ public class Room : MonoBehaviour
     /*
      * Makes a move from this to type
      */ 
-    public void setMove(Bead type)
+    public void SetMove(Bead type)
     {
         setMember(type);
         // Visual effect
         Board board = transform.parent.gameObject.GetComponent<Board>();
-        Texture2D tex = board.getConjugateTexture(this.member);
+        Texture2D tex = this.member == Bead.ROO ? board.rooTex : board.veeTex;
         if(gameObject.GetComponent<SpriteRenderer>() as SpriteRenderer != null)
         {
             gameObject.GetComponent<SpriteRenderer>().sprite = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height)
@@ -65,8 +65,8 @@ public class Room : MonoBehaviour
             sp.sprite = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height),
                 new Vector2(0.5f, 0.5f));
         }
-       
     }
+
     /*
      * return
      * if <i>room</i> is a valid destination of this room?
@@ -78,11 +78,7 @@ public class Room : MonoBehaviour
             Debug.Log("This room is already occupied.");
             return false;
         }
-        if (graph[this.index, room.index] == 1)
-        {
-            return true;
-        } 
-        return false;
+        return graph[this.index, room.index] == 1;
     }
 
     public Bead getMember()
@@ -95,13 +91,13 @@ public class Room : MonoBehaviour
         return this.member == Bead.EMPTY;
     }
 
-    public void removeMove()
+    public void RemoveMove()
     {
-        this.setEmpty();
+        this.SetEmpty();
         Destroy(gameObject.GetComponent<SpriteRenderer>());
     }
 
-    private void setEmpty()
+    private void SetEmpty()
     {
         setMember(Bead.EMPTY);
     }

@@ -18,7 +18,7 @@ public class Room : MonoBehaviour
     public Bead member = Bead.EMPTY;
     public Vector2 Position { private get; set; }
     [NonSerialized]
-    public int index;
+    private int index;
 
     public Room(int index)
     {
@@ -71,7 +71,7 @@ public class Room : MonoBehaviour
      * return
      * if <i>room</i> is a valid destination of this room?
      */ 
-    public bool ValidMove(Room room)
+    public bool IsValidMove(Room room)
     {
         if (!room.isEmpty())
         {
@@ -79,6 +79,29 @@ public class Room : MonoBehaviour
             return false;
         }
         return graph[this.index, room.index] == 1;
+    }
+
+    public int[] GetValidMoves()
+    {
+        int[] arr = new int[9];
+        Room[] rooms = transform.parent.GetComponent<Board>().rooms;
+        int j = 0;
+        for(int i = 0; i < Room.graph.GetLength(0); i++)
+        {
+            if (Room.graph[index, i] == 1)
+            {
+                if(rooms[index].IsValidMove(rooms[i]))
+                    arr[j++] = i;
+            }
+        }
+        Array.Resize<int>(ref arr, j);
+        Debug.Log("Number of valid moves: " + j);
+        return arr;
+    }
+
+    private int GetNumberOfPossibleMoves()
+    {
+        return index == 4 ? 8 : (index % 2 == 0) ? 3 : 5;
     }
 
     public Bead getMember()

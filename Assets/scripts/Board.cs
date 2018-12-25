@@ -8,16 +8,27 @@ public class Board : MonoBehaviour {
     public Texture2D rooTex, veeTex;
     private Room takenRoom;
     private Boolean taken;
-    private Room.Bead currentTurn;
+    private Room.Bead currentTurn = Room.Bead.VEE;
     private readonly int[] vees = new int[3] { 6, 7, 8 };
     private readonly int[] roos = new int[3] { 0, 1, 2 };
-    
+    private RooAi ai;
+
+
 	void Start () {
-        currentTurn = UnityEngine.Random.value > 0.5f ? Room.Bead.VEE : Room.Bead.ROO;
+        ai = new RooAi(this);
         InitiateRooms();
 	}
 
     void Update () {
+        if(currentTurn == Room.Bead.ROO)
+        {
+            Debug.Log("Roo's turn.");
+            ai.Decide();
+            Debug.Log("Roo moving: " + ai.getSource().GetIndex() + " to " + ai.getDest().GetIndex());
+            MakeAMove(ai.getSource(), ai.getDest());
+            currentTurn = Room.Bead.VEE;
+            return;
+        }
     #if UNITY_ANDROID
         for(int i = 0; i < Input.touchCount; i++)
         {
@@ -66,7 +77,7 @@ public class Board : MonoBehaviour {
         * TODO:
         *  4. Move animation
         */
-        if (destRoom.index == takenRoom.index)
+        if (destRoom.GetIndex() == takenRoom.GetIndex())
         {
             Debug.Log("Back this bead.");
             Color tmpColor = destRoom.GetComponent<SpriteRenderer>().color;
@@ -76,13 +87,13 @@ public class Board : MonoBehaviour {
             takenRoom = null;
             return;
         }
-        if (!takenRoom.ValidMove(destRoom))
+        if (!takenRoom.IsValidMove(destRoom))
         {
             return;
         }
         destRoom.SetMove(takenRoom.getMember());
         takenRoom.RemoveMove();
-        if (isWin(takenRoom.index, destRoom.index))
+        if (isWin(takenRoom.GetIndex(), destRoom.GetIndex()))
         {
             Debug.Log(destRoom.getMember() + " won!");
         }
@@ -145,5 +156,10 @@ public class Board : MonoBehaviour {
                 obj.transform.localScale = Vector3.one;
             }
         }
+    }
+
+    public int[] GetBeadPositions(Room.Bead bead)
+    {
+        return bead == Room.Bead.ROO ? roos : vees;
     }
 }

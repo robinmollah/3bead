@@ -59,7 +59,7 @@ public class Board : MonoBehaviour {
                 return;
             } else
             {
-                if (!room.isEmpty() && room.getMember() == currentTurn)
+                if (!room.IsEmpty() && room.getMember() == currentTurn)
                 {
                     Color tmpColor = room.GetComponent<SpriteRenderer>().color;
                     tmpColor.a = 0.5f;
@@ -93,7 +93,7 @@ public class Board : MonoBehaviour {
         }
         destRoom.SetMove(takenRoom.getMember());
         takenRoom.RemoveMove();
-        if (isWin(takenRoom.GetIndex(), destRoom.GetIndex()))
+        if (IsWin(takenRoom.GetIndex(), destRoom.GetIndex()))
         {
             Debug.Log(destRoom.getMember() + " won!");
         }
@@ -101,22 +101,26 @@ public class Board : MonoBehaviour {
         currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
     }
 
-    private Boolean isWin(int prevIndex, int currentIndex)
+    private Boolean IsWin(int prevIndex, int currentIndex)
     {
         // Refresh positions
         int[] arr = rooms[currentIndex].getMember() == Room.Bead.ROO ? roos : vees;
         arr[Array.IndexOf(arr, prevIndex)] = currentIndex;
         // Check positions
         Array.Sort(arr);
-        if (arr[1] - arr[0] == 2) return false; // Cases increments by 2, like 024, 135 are not valid win position
-
+        // TODO is there any way to set who has a WiningMove in next move?
+        if (arr[1] - arr[0] == 2)
+        {
+            return false;
+        }
         if(rooms[currentIndex].getMember() == Room.Bead.ROO)
         {
-            if(arr[0] == 0 && arr[1] == 1 && arr[2] == 2)
+            // OPTIMIZE 3 condition is not required
+            if(arr[0] == 0 && arr[1] == 1)
                 return false; // Initial Position of Roo
         } else
         {
-            if (arr[0] == 6 && arr[1] == 7 && arr[2] == 8)
+            if (arr[0] == 6 && arr[1] == 7)
                 return false; // Initial Position of Vee
         }
         return arr[1] - arr[0] == arr[2] - arr[1];

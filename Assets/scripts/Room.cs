@@ -15,10 +15,11 @@ public class Room : MonoBehaviour
         {0, 0, 0, 0, 1, 0, 1, 0, 1 },
         {0, 0, 0, 0, 1, 1, 0, 1, 0 }
     };
-    public Bead member = Bead.EMPTY;
+    public Bead bead = Bead.EMPTY;
     public Vector2 Position { private get; set; }
     [NonSerialized]
     private int index;
+    private bool rooWinning, veeWinning;
 
     public Room(int index)
     {
@@ -42,7 +43,7 @@ public class Room : MonoBehaviour
 
     public void setMember(Bead type)
     {
-        this.member = type;
+        this.bead = type;
         
     }
 
@@ -54,7 +55,7 @@ public class Room : MonoBehaviour
         setMember(type);
         // Visual effect
         Board board = transform.parent.gameObject.GetComponent<Board>();
-        Texture2D tex = this.member == Bead.ROO ? board.rooTex : board.veeTex;
+        Texture2D tex = this.bead == Bead.ROO ? board.rooTex : board.veeTex;
         if(gameObject.GetComponent<SpriteRenderer>() as SpriteRenderer != null)
         {
             gameObject.GetComponent<SpriteRenderer>().sprite = Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height)
@@ -73,7 +74,7 @@ public class Room : MonoBehaviour
      */ 
     public bool IsValidMove(Room room)
     {
-        if (!room.isEmpty())
+        if (!room.IsEmpty())
         {
             Debug.Log("This room is already occupied.");
             return false;
@@ -90,7 +91,7 @@ public class Room : MonoBehaviour
         {
             if (Room.graph[index, i] == 1)
             {
-                if(rooms[index].IsValidMove(rooms[i]))
+                if(rooms[index].IsValidMove(rooms[i])) // hasEdge
                     arr[j++] = i;
             }
         }
@@ -106,12 +107,12 @@ public class Room : MonoBehaviour
 
     public Bead getMember()
     {
-        return this.member;
+        return this.bead;
     }
 
-    public Boolean isEmpty()
+    public Boolean IsEmpty()
     {
-        return this.member == Bead.EMPTY;
+        return this.bead == Bead.EMPTY;
     }
 
     public void RemoveMove()
@@ -123,6 +124,29 @@ public class Room : MonoBehaviour
     private void SetEmpty()
     {
         setMember(Bead.EMPTY);
+    }
+
+    public bool HasWinningMove(Bead type)
+    {
+        return type == Bead.ROO ? rooWinning : veeWinning ;
+    }
+
+    public bool HasWinningMove()
+    {
+        return HasWinningMove(bead);
+    }
+
+    public void SetWinningMove(bool value)
+    {
+        SetWinningMove(bead, value);
+    }
+
+    public void SetWinningMove(Bead bead, bool value)
+    {
+        if (bead == Bead.ROO)
+            rooWinning = value;
+        else
+            veeWinning = value;
     }
 
     public enum Bead

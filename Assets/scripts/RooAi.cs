@@ -115,9 +115,18 @@ public class RooAi {
         board.MakeAMove(source, dest);
     }
 
-    public Room PickMonkeyBead() => board.rooms[board.GetBeadPositions(Room.Bead.ROO)[(int)UnityEngine.Random.Range(0, 3)]];
+    public Room PickMonkeyBead()
+    {
+        return board.rooms[board.GetBeadPositions(Room.Bead.ROO)[UnityEngine.Random.Range(0, 3)]];
+    }
 
-    public Room getSource() => this.source;
+    public Room GetSource()
+    {
+        return this.source;
+    }
 
-    public Room getDest() => this.dest;
+    public Room GetDest()
+    {
+        return this.dest;
+    }
 }

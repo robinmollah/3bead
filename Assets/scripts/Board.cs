@@ -33,7 +33,7 @@ public class Board : MonoBehaviour {
         {
             Debug.Log("Roo's turn.");
             ai.Decide();
-            ToggleTurn();
+            // ToggleTurn();
             currentTurn = Room.Bead.VEE;
             return;
         }
@@ -54,7 +54,10 @@ public class Board : MonoBehaviour {
     #endif
     }
 
-    private void ToggleTurn() => currentTurn = currentTurn == Room.Bead.ROO ? Room.Bead.VEE : Room.Bead.ROO;
+    private void ToggleTurn()
+    {
+        currentTurn = currentTurn == Room.Bead.ROO ? Room.Bead.VEE : Room.Bead.ROO;
+    }
 
     private void Raycast(Vector2 screenTouch)
     {

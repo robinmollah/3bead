@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Board : MonoBehaviour {
     public Room[] rooms = new Room[9];
+    public static string LabelText = "No text";
     public Texture2D rooTex, veeTex;
     private Room takenRoom;
     private Boolean taken;
@@ -19,13 +21,19 @@ public class Board : MonoBehaviour {
         InitiateRooms();
 	}
 
+    private void OnGUI()
+    {
+        Vector2 labelSize = new Vector2(200, Screen.height * 0.75f);
+        Vector2 labelPosition = new Vector2(Screen.width - labelSize.x - 20, 10);
+        GUI.Label(new Rect(labelPosition, labelSize), LabelText);
+    }
+
     void Update () {
         if(currentTurn == Room.Bead.ROO)
         {
             Debug.Log("Roo's turn.");
             ai.Decide();
-            Debug.Log("Roo moving: " + ai.getSource().GetIndex() + " to " + ai.getDest().GetIndex());
-            MakeAMove(ai.getSource(), ai.getDest());
+            ToggleTurn();
             currentTurn = Room.Bead.VEE;
             return;
         }
@@ -46,12 +54,13 @@ public class Board : MonoBehaviour {
     #endif
     }
 
+    private void ToggleTurn() => currentTurn = currentTurn == Room.Bead.ROO ? Room.Bead.VEE : Room.Bead.ROO;
+
     private void Raycast(Vector2 screenTouch)
     {
         RaycastHit2D hitInfo = Physics2D.Raycast(Camera.main.ScreenToWorldPoint(screenTouch), Vector2.zero);
         if (hitInfo)
         {
-           
             Room room = hitInfo.transform.gameObject.GetComponent<Room>();
             if (taken)
             {
@@ -71,7 +80,7 @@ public class Board : MonoBehaviour {
         }
     }
 
-    private void MakeAMove(Room takenRoom, Room destRoom)
+    public void MakeAMove(Room takenRoom, Room destRoom)
     {
         /*
         * TODO:
@@ -92,30 +101,29 @@ public class Board : MonoBehaviour {
             return;
         }
         destRoom.SetMove(takenRoom.getMember());
-        takenRoom.RemoveMove();
         if (IsWin(takenRoom.GetIndex(), destRoom.GetIndex()))
         {
-            Debug.Log(destRoom.getMember() + " won!");
+            Debug.Log(destRoom.getMember() + " won! " + MyArray.ToString(GetBeadPositions(destRoom.getMember())));
+            Restart();
         }
+        takenRoom.RemoveMove();
         taken = false;
         currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
     }
 
-    private Boolean IsWin(int prevIndex, int currentIndex)
+    private void Restart()
     {
-        // Refresh positions
-        int[] arr = rooms[currentIndex].getMember() == Room.Bead.ROO ? roos : vees;
-        arr[Array.IndexOf(arr, prevIndex)] = currentIndex;
-        // Check positions
-        Array.Sort(arr);
+        Board.LabelText += "Victory!!!";
+        // Wait for some second before making the next
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    internal Boolean IsWin(int prevIndex, int currentIndex)
+    {
+        int[] arr = RefreshPositions(prevIndex, currentIndex);
         // TODO is there any way to set who has a WiningMove in next move?
-        if (arr[1] - arr[0] == 2)
+        if (rooms[currentIndex].getMember() == Room.Bead.ROO)
         {
-            return false;
-        }
-        if(rooms[currentIndex].getMember() == Room.Bead.ROO)
-        {
-            // OPTIMIZE 3 condition is not required
             if(arr[0] == 0 && arr[1] == 1)
                 return false; // Initial Position of Roo
         } else
@@ -123,7 +131,26 @@ public class Board : MonoBehaviour {
             if (arr[0] == 6 && arr[1] == 7)
                 return false; // Initial Position of Vee
         }
+        if (arr[1] - arr[0] == 2)
+        {
+            if (arr[0] != 2) // Matches 2 4 6
+            {
+                return false;
+            }
+        } else if(arr[1] - arr[0] == 1)
+        {
+            return arr[0] % 3 == 0 ? arr[2] - arr[1] == 1 : false;
+        }
         return arr[1] - arr[0] == arr[2] - arr[1];
+    }
+
+    internal int[] RefreshPositions(int prevIndex, int currentIndex)
+    {
+        int[] arr = rooms[prevIndex].getMember() == Room.Bead.ROO ? roos : vees;
+        arr[Array.IndexOf(arr, prevIndex)] = currentIndex;
+        // Check positions
+        Array.Sort(arr);
+        return arr;
     }
 
     private void InitiateRooms()

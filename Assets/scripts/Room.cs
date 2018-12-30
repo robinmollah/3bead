@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Room : MonoBehaviour
 {
-    private static readonly int[,] graph = new int[9, 9]{
+    public static readonly int[,] graph = new int[9, 9]{
         {0, 1, 0, 1, 1, 0, 0, 0, 0 },
         {1, 0, 1, 0, 1, 0, 0, 0, 0 },
         {0, 1, 0, 0, 1, 1, 0, 0, 0 },

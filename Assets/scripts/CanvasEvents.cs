@@ -7,6 +7,5 @@ public class CanvasEvents : MonoBehaviour {
     public void OnStart()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-
     }
 }

@@ -15,23 +15,68 @@ public class RooAi {
 
     public void Decide()
     {
-        if (!WinningMove()) MakeMonkeyMove();
+        if (!HasWinningMove() && !PreventWin())
+        {
+            MakeMonkeyMove();
+        }
     }
 
-    public bool WinningMove()
+    public bool PreventWin()
     {
-        int[] arr = board.GetBeadPositions(Room.Bead.ROO);
-        Debug.Log(MyArray.ToString(arr));
-        int i, j = 0, dest = -1;
-        Board.LabelText = "Searching for moves: \n";
+        // if this move give him a chance to win don't move
+        // if this move prevent him from win make this move
+        int[] arr = board.GetBeadPositions(Room.Bead.VEE);
+        int i, j = 0;
+        Board.LabelText = "\nSearching for ops winmove";
         for(i = 0; i < arr.Length; i++)
         {
-            Board.LabelText += "\nValid moves for: " + arr[i] +": ";
+            Board.LabelText += "\nSearching for " + arr[i]+"'s validmove";
+            for(j = 0; j < Room.graph.GetLength(0); j++)
+            {
+                if (board.rooms[arr[i]].IsValidMove(board.rooms[j]))
+                {
+                    Board.LabelText += " " + j;
+                    if(IsWin(arr[i], j))
+                    {
+                        Board.LabelText += "\nHas a winmove at " + arr[i] + " to " + j;
+                        return MakeAMoveTo(j);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private bool MakeAMoveTo(int dest)
+    {
+        Board.LabelText += "\nSearching for prevention";
+        int[] arr = board.GetBeadPositions(Room.Bead.ROO);
+        for(int i = 0; i < arr.Length; i++)
+        {
+            Board.LabelText += "\nCan " + arr[i] + " prevent? " + Room.graph[arr[i], dest];
+            if (i == dest) continue;
+            if(Room.graph[arr[i], dest] == 1 && board.rooms[dest].IsEmpty())
+            {
+                Board.LabelText += "\nPrevention found: " + arr[i] + " to " + dest;
+                Debug.Log(Board.LabelText);
+                board.MakeAMove(board.rooms[arr[i]], board.rooms[dest]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public bool HasWinningMove(Room.Bead bead = Room.Bead.ROO)
+    {
+        int[] arr = board.GetBeadPositions(bead);
+        int i, j = 0, dest = -1;
+        // TODO is there anyway to know if a move is exposing a win to vee;
+        for(i = 0; i < arr.Length; i++)
+        {
             for(j = 0; j < Room.graph.GetLength(0); j++)
             {
                 if(board.rooms[arr[i]].IsValidMove(board.rooms[j]))
                 {
-                    Board.LabelText += j + " ";
                     if (IsWin(arr[i], j))
                     {
                         dest = j;
@@ -40,7 +85,6 @@ public class RooAi {
                 }
             }
             if (dest != -1) break;
-            Board.LabelText += "\n" + arr[i] + " has no winning move.";
         }
         if(dest == -1)
         {
@@ -49,7 +93,8 @@ public class RooAi {
         } else
         {
             Debug.Log("Make a move from : " + arr[i] + " to " + j);
-            board.MakeAMove(board.rooms[arr[i]], board.rooms[j]);
+            if(bead == Room.Bead.ROO)
+                board.MakeAMove(board.rooms[arr[i]], board.rooms[j]);
             return true;
         }
     }

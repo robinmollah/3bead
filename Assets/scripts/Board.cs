@@ -14,7 +14,7 @@ public class Board : MonoBehaviour {
     private readonly int[] vees = new int[3] { 6, 7, 8 };
     private readonly int[] roos = new int[3] { 0, 1, 2 };
     private RooAi ai;
-
+    public Room.Bead winner = Room.Bead.EMPTY;
 
 	void Start () {
         ai = new RooAi(this);
@@ -29,6 +29,7 @@ public class Board : MonoBehaviour {
     }
 
     void Update () {
+        if (winner != Room.Bead.EMPTY) return;
         if(currentTurn == Room.Bead.ROO)
         {
             Debug.Log("Roo's turn.");
@@ -89,6 +90,29 @@ public class Board : MonoBehaviour {
         * TODO:
         *  4. Move animation
         */
+        Debug.Log("Request to make a move from: " + takenRoom.GetIndex() + " to " + destRoom.GetIndex());
+        if (AreSameRoom(takenRoom, destRoom)) return;
+        if (!takenRoom.IsValidMove(destRoom))
+        {
+            Debug.LogError("Invalid move: " + takenRoom.GetIndex() + " TO " + destRoom.GetIndex());
+            return;
+        }
+        destRoom.SetMove(takenRoom.getMember());
+        if (IsWin(takenRoom.GetIndex(), destRoom.GetIndex()))
+        {
+            Debug.Log(destRoom.getMember() + " won! " + MyArray.ToString(GetBeadPositions(destRoom.getMember())));
+            winner = destRoom.getMember();
+            Board.LabelText += "Victory!!! \n " + winner + " won the match!";
+            StartCoroutine(Restart());
+        }
+        takenRoom.RemoveMove();
+        taken = false;
+        currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
+    }
+
+    private bool AreSameRoom(Room takenRoom, Room destRoom)
+    {
+        Debug.Log("Psycho: " + takenRoom.GetIndex() + " TO " + destRoom.GetIndex() + " OMG " + (destRoom.GetIndex() == takenRoom.GetIndex()));
         if (destRoom.GetIndex() == takenRoom.GetIndex())
         {
             Debug.Log("Back this bead.");
@@ -97,28 +121,21 @@ public class Board : MonoBehaviour {
             destRoom.GetComponent<SpriteRenderer>().color = tmpColor;
             taken = false;
             takenRoom = null;
-            return;
+            return true;
         }
-        if (!takenRoom.IsValidMove(destRoom))
+        else
         {
-            return;
+            return false;
         }
-        destRoom.SetMove(takenRoom.getMember());
-        if (IsWin(takenRoom.GetIndex(), destRoom.GetIndex()))
-        {
-            Debug.Log(destRoom.getMember() + " won! " + MyArray.ToString(GetBeadPositions(destRoom.getMember())));
-            Restart();
-        }
-        takenRoom.RemoveMove();
-        taken = false;
-        currentTurn = currentTurn == Room.Bead.VEE ? Room.Bead.ROO : Room.Bead.VEE;
     }
 
-    private void Restart()
+    private IEnumerator Restart()
     {
-        Board.LabelText += "Victory!!!";
         // Wait for some second before making the next
+        Debug.Log("Coroutine ran.");
+        yield return new WaitForSecondsRealtime(1.5f);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
     }
 
     internal Boolean IsWin(int prevIndex, int currentIndex)
@@ -195,5 +212,10 @@ public class Board : MonoBehaviour {
     public int[] GetBeadPositions(Room.Bead bead)
     {
         return bead == Room.Bead.ROO ? roos : vees;
+    }
+
+    public enum GameState
+    {
+        INITIALISED, RUNNING, OVER
     }
 }

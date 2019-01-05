@@ -79,7 +79,12 @@ public class Room : MonoBehaviour
             Debug.Log("This room is already occupied.");
             return false;
         }
-        return graph[this.index, room.index] == 1;
+        return HasEdge(this.index, room.GetIndex());
+    }
+
+    public static bool HasEdge(int n1, int n2)
+    {
+        return graph[n1, n2] == 1;
     }
 
     public int[] GetValidMoves()
@@ -152,5 +157,10 @@ public class Room : MonoBehaviour
     public enum Bead
     {
         EMPTY, ROO, VEE
+    }
+
+    internal bool HasValidMove()
+    {
+        return GetValidMoves().Length > 0;
     }
 }

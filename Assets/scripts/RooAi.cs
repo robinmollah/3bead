@@ -15,30 +15,39 @@ public class RooAi {
 
     public void Decide()
     {
-        if (!HasWinningMove() && !PreventWin())
+        if (!HasWinningMove() && !PreventWin() && !DontLetWin()) // FIX does this condition okay?
         {
             MakeMonkeyMove();
         }
     }
 
+    /*
+     * Donot make a move what will let the player win.
+     */
+    private bool DontLetWin()
+    {
+        // 
+        // if I make this move, will the player win?
+        return false;
+    }
+
+    /*
+     * If the player has an winmove. Prevent him to win.
+     */
     public bool PreventWin()
     {
         // if this move give him a chance to win don't move
         // if this move prevent him from win make this move
         int[] arr = board.GetBeadPositions(Room.Bead.VEE);
         int i, j = 0;
-        Board.LabelText = "\nSearching for ops winmove";
         for(i = 0; i < arr.Length; i++)
         {
-            Board.LabelText += "\nSearching for " + arr[i]+"'s validmove";
             for(j = 0; j < Room.graph.GetLength(0); j++)
             {
                 if (board.rooms[arr[i]].IsValidMove(board.rooms[j]))
                 {
-                    Board.LabelText += " " + j;
                     if(IsWin(arr[i], j))
                     {
-                        Board.LabelText += "\nHas a winmove at " + arr[i] + " to " + j;
                         return MakeAMoveTo(j);
                     }
                 }
@@ -49,16 +58,12 @@ public class RooAi {
 
     private bool MakeAMoveTo(int dest)
     {
-        Board.LabelText += "\nSearching for prevention";
         int[] arr = board.GetBeadPositions(Room.Bead.ROO);
         for(int i = 0; i < arr.Length; i++)
         {
-            Board.LabelText += "\nCan " + arr[i] + " prevent? " + Room.graph[arr[i], dest];
             if (i == dest) continue;
-            if(Room.graph[arr[i], dest] == 1 && board.rooms[dest].IsEmpty())
+            if(Room.HasEdge(arr[i], dest) && board.rooms[dest].IsEmpty())
             {
-                Board.LabelText += "\nPrevention found: " + arr[i] + " to " + dest;
-                Debug.Log(Board.LabelText);
                 board.MakeAMove(board.rooms[arr[i]], board.rooms[dest]);
                 return true;
             }
@@ -73,7 +78,7 @@ public class RooAi {
         // TODO is there anyway to know if a move is exposing a win to vee;
         for(i = 0; i < arr.Length; i++)
         {
-            for(j = 0; j < Room.graph.GetLength(0); j++)
+            for(j = 0; j < 9; j++)
             {
                 if(board.rooms[arr[i]].IsValidMove(board.rooms[j]))
                 {
@@ -88,7 +93,6 @@ public class RooAi {
         }
         if(dest == -1)
         {
-            Debug.LogWarning("No winning move found.");
             return false;
         } else
         {
@@ -152,8 +156,7 @@ public class RooAi {
         int[] validDsts = source.GetValidMoves();
         if(validDsts.Length == 0) // No possible move
         {
-            MakeMonkeyMove(); // Start again with a new source
-            return;
+            Debug.LogWarning("This bead has no valid destination.");
         }
         int rand = UnityEngine.Random.Range(0, validDsts.Length);
         dest = board.rooms[validDsts[rand]];
@@ -162,7 +165,60 @@ public class RooAi {
 
     public Room PickMonkeyBead()
     {
-        return board.rooms[board.GetBeadPositions(Room.Bead.ROO)[UnityEngine.Random.Range(0, 3)]];
+        // TODO co-operate this method with the main monkey.
+        int[] roos = board.GetBeadPositions(Room.Bead.ROO);
+        int[] vees = board.GetBeadPositions(Room.Bead.VEE);
+        int[] black = new int[3];
+        int blackedCount = 0;
+        int rand;
+        int tryCount = 5;
+        while (true)
+        {
+            Board.LabelText = "Attempt Remaining: " + tryCount;
+            rand = UnityEngine.Random.Range(0, 3);
+            // Checking if already blacked
+            if (Array.IndexOf(black, rand) != -1)
+            {
+                continue;
+            }
+            if (!board.rooms[roos[rand]].HasValidMove())
+            {
+                black[blackedCount++] = rand;
+                continue;
+            }
+            if(blackedCount == 2)
+            {
+                return board.rooms[roos[rand]];
+            }
+            bool shouldContinue = false;
+            for (int i = 0; i < 3; i++)
+            {
+                Board.LabelText += "\nTesting: " + vees[i];
+                if (Room.HasEdge(vees[i], roos[rand]) &&  IsWin(vees[i], roos[rand]))
+                {
+                    Debug.Log(vees[i] + " can access this position to win");
+                    shouldContinue = true;
+                }
+            }
+            if(tryCount <= 0)
+            {
+                break;
+            }
+            if (shouldContinue)
+            {
+                tryCount--;
+                continue;
+            }
+            // infinite loop: because randomly picked bead might not have any destination. so before picking 
+            // make sure it has at least one destination destination
+            break;
+        }
+        Board.LabelText += "\nPicked: " + roos[rand];
+
+        // if moving this bead exposes a win = if (the source bead is accessible by any player's bead and if it is replaced
+        // by players bead then player wins) then it cannot be a source bead.
+
+        return board.rooms[roos[rand]];
     }
 
     public Room GetSource()

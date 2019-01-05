@@ -90,7 +90,6 @@ public class Board : MonoBehaviour {
         * TODO:
         *  4. Move animation
         */
-        Debug.Log("Request to make a move from: " + takenRoom.GetIndex() + " to " + destRoom.GetIndex());
         if (AreSameRoom(takenRoom, destRoom)) return;
         if (!takenRoom.IsValidMove(destRoom))
         {
@@ -100,7 +99,6 @@ public class Board : MonoBehaviour {
         destRoom.SetMove(takenRoom.getMember());
         if (IsWin(takenRoom.GetIndex(), destRoom.GetIndex()))
         {
-            Debug.Log(destRoom.getMember() + " won! " + MyArray.ToString(GetBeadPositions(destRoom.getMember())));
             winner = destRoom.getMember();
             Board.LabelText += "Victory!!! \n " + winner + " won the match!";
             StartCoroutine(Restart());
@@ -112,7 +110,6 @@ public class Board : MonoBehaviour {
 
     private bool AreSameRoom(Room takenRoom, Room destRoom)
     {
-        Debug.Log("Psycho: " + takenRoom.GetIndex() + " TO " + destRoom.GetIndex() + " OMG " + (destRoom.GetIndex() == takenRoom.GetIndex()));
         if (destRoom.GetIndex() == takenRoom.GetIndex())
         {
             Debug.Log("Back this bead.");
@@ -132,7 +129,6 @@ public class Board : MonoBehaviour {
     private IEnumerator Restart()
     {
         // Wait for some second before making the next
-        Debug.Log("Coroutine ran.");
         yield return new WaitForSecondsRealtime(1.5f);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 

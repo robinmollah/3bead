@@ -7,6 +7,7 @@ public class RooAi {
     private Board board;
     private Room source;
     private Room dest;
+    public int trapCount, blackedCount;
 
     public RooAi(Board board)
     {
@@ -15,20 +16,11 @@ public class RooAi {
 
     public void Decide()
     {
-        if (!HasWinningMove() && !PreventWin() && !DontLetWin()) // FIX does this condition okay?
+        Board.LabelText = "";
+        if (!(HasWinningMove() || PreventWin())) // FIX does this condition okay?
         {
             MakeMonkeyMove();
         }
-    }
-
-    /*
-     * Donot make a move what will let the player win.
-     */
-    private bool DontLetWin()
-    {
-        // 
-        // if I make this move, will the player win?
-        return false;
     }
 
     /*
@@ -38,6 +30,7 @@ public class RooAi {
     {
         // if this move give him a chance to win don't move
         // if this move prevent him from win make this move
+        Board.LabelText = "\nSearching for players win";
         int[] arr = board.GetBeadPositions(Room.Bead.VEE);
         int i, j = 0;
         for(i = 0; i < arr.Length; i++)
@@ -48,6 +41,7 @@ public class RooAi {
                 {
                     if(IsWin(arr[i], j))
                     {
+                        Board.LabelText += "\nFound a way for player to win.";
                         return MakeAMoveTo(j);
                     }
                 }
@@ -65,14 +59,17 @@ public class RooAi {
             if(Room.HasEdge(arr[i], dest) && board.rooms[dest].IsEmpty())
             {
                 board.MakeAMove(board.rooms[arr[i]], board.rooms[dest]);
+                Board.LabelText += " Preventing win " + arr[i] + " to " + dest;                
                 return true;
             }
         }
+        Board.LabelText += " No way to prevent.";
         return false;
     }
 
     public bool HasWinningMove(Room.Bead bead = Room.Bead.ROO)
     {
+        Board.LabelText += "\nIs there any way to win of " + bead + "?";
         int[] arr = board.GetBeadPositions(bead);
         int i, j = 0, dest = -1;
         // TODO is there anyway to know if a move is exposing a win to vee;
@@ -99,6 +96,7 @@ public class RooAi {
             Debug.Log("Make a move from : " + arr[i] + " to " + j);
             if(bead == Room.Bead.ROO)
                 board.MakeAMove(board.rooms[arr[i]], board.rooms[j]);
+            Board.LabelText += " Yes";
             return true;
         }
     }
@@ -156,7 +154,7 @@ public class RooAi {
         int[] validDsts = source.GetValidMoves();
         if(validDsts.Length == 0) // No possible move
         {
-            Debug.LogWarning("This bead has no valid destination.");
+            Board.LabelText += "<b>This bead has no valid destination.</b>";
         }
         int rand = UnityEngine.Random.Range(0, validDsts.Length);
         dest = board.rooms[validDsts[rand]];
@@ -165,18 +163,24 @@ public class RooAi {
 
     public Room PickMonkeyBead()
     {
-        // TODO co-operate this method with the main monkey.
-        int[] roos = board.GetBeadPositions(Room.Bead.ROO);
-        int[] vees = board.GetBeadPositions(Room.Bead.VEE);
-        int[] black = new int[3];
-        int blackedCount = 0;
+        int[] roos = board.GetBeadPositions(Room.Bead.ROO); // Computer
+        int[] vees = board.GetBeadPositions(Room.Bead.VEE); // Player
+        int[] black = { -2, -2 }; // No valid moves of Computer
+        int[] trap = { -2, -2 };
+        // Why -2
+        // initial 0 will be confused while storing value of 0. -1 will be confused with the absence of finding value
+        blackedCount = 0;
+        trapCount = 0;
+        int tryCount = 12;
         int rand;
-        int tryCount = 5;
         while (true)
         {
-            Board.LabelText = "Attempt Remaining: " + tryCount;
             rand = UnityEngine.Random.Range(0, 3);
             // Checking if already blacked
+            if (tryCount < 0)
+            {
+                break;
+            }
             if (Array.IndexOf(black, rand) != -1)
             {
                 continue;
@@ -186,23 +190,24 @@ public class RooAi {
                 black[blackedCount++] = rand;
                 continue;
             }
-            if(blackedCount == 2)
+            if(blackedCount == 2 || trapCount == 2)
             {
-                return board.rooms[roos[rand]];
+                Board.LabelText += "\nOnly one bead can be moved. "
+                    + " blacked " + MyArray.ToString(black) + " trapped " + MyArray.ToString(trap);
+                break;
             }
             bool shouldContinue = false;
             for (int i = 0; i < 3; i++)
             {
-                Board.LabelText += "\nTesting: " + vees[i];
                 if (Room.HasEdge(vees[i], roos[rand]) &&  IsWin(vees[i], roos[rand]))
                 {
                     Debug.Log(vees[i] + " can access this position to win");
                     shouldContinue = true;
+                    if (Array.IndexOf(trap, rand) != -1)
+                    {
+                        trap[trapCount++] = rand;
+                    }
                 }
-            }
-            if(tryCount <= 0)
-            {
-                break;
             }
             if (shouldContinue)
             {

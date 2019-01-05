@@ -13,7 +13,7 @@ public class Board : MonoBehaviour {
     private Room.Bead currentTurn = Room.Bead.VEE;
     private readonly int[] vees = new int[3] { 6, 7, 8 };
     private readonly int[] roos = new int[3] { 0, 1, 2 };
-    private RooAi ai;
+    public RooAi ai;
     public Room.Bead winner = Room.Bead.EMPTY;
 
 	void Start () {
@@ -90,6 +90,7 @@ public class Board : MonoBehaviour {
         * TODO:
         *  4. Move animation
         */
+        Board.LabelText += "\nMaking a move " + takenRoom.GetIndex() + " to " + destRoom.GetIndex();
         if (AreSameRoom(takenRoom, destRoom)) return;
         if (!takenRoom.IsValidMove(destRoom))
         {
@@ -100,7 +101,7 @@ public class Board : MonoBehaviour {
         if (IsWin(takenRoom.GetIndex(), destRoom.GetIndex()))
         {
             winner = destRoom.getMember();
-            Board.LabelText += "Victory!!! \n " + winner + " won the match!";
+            Board.LabelText = "Victory!!! \n " + winner + " won the match!";
             StartCoroutine(Restart());
         }
         takenRoom.RemoveMove();

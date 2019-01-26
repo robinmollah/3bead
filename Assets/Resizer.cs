@@ -8,7 +8,7 @@ public class Resizer : MonoBehaviour
     {
         float nScale = 3f;
         float cWidth = Screen.width;
-        float cDpi = 416;
+        float cDpi = Screen.dpi;
         if(Screen.orientation == ScreenOrientation.Portrait)
         {
             nScale = (cWidth / 250f) / (cDpi / 160f);

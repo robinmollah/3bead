@@ -266,3 +266,5 @@ __pycache__/
 /MessengerGame
 /3Bead.csproj
 /3Bead.sln
+/Tiny
+*.csproj
